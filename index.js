@@ -1,19 +1,27 @@
-import { auth,
+import {
+  auth,
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
   sendEmailVerification,
-  sendPasswordResetEmail,
-  signOut
+
+  db,
+  addDoc,
+  collection,
+  serverTimestamp,
+
+  where,
+  getDocs,
+  query,
+    deleteDoc,
+     onSnapshot,
+       doc
+
+
 } from "./firebase.config.js";
 
 ////================== signup ===========================//
 //==== add sb input for firestore database//////
-const signUp = async (e) => {
-  e.preventDefault();
-  let name = document.getElementById("name").value;   //new add
-  let contact = document.getElementById("contact").value;
-  let age = document.getElementById("age").value;
-
+const signUp = async () => {
  let email = document.getElementById("email").value;
   let password = document.getElementById("pswd").value;
 
@@ -22,31 +30,13 @@ const signUp = async (e) => {
   const user =userCredential.user //mujhy is user chahiye is liye .user likha ,currently signin user mile ga
 console.log(user);
 
-await setDoc(doc(db, "users", user.uid), {   //firestore setDoc
 
-      name,    ///key value same name ka ho to single name bhi likh sakta ha
-      age,
-      contact,
-      email,
-      isActive: true,
-      timestamp: serverTimestamp(),  //time show kare ga jis time user creat ya update ho ga
-      role: "user",
-    });
-
-    //verification kare ga phir uska bad kisi page ko visit kare
-if(!user.emailVerified){   //agr email verif ni ha..
-       await sendEmailVerification(auth.currentUser);   //user creat ho kr ae verify email send ho ja..
-      signOut(auth);//signout krwa dena or login page pr chala jae
-      alert("Please verify your email")    //alert msg show
-    window.location.replace("/html/login.html");  //kis page pr chale jana
-    }
   } catch(error){
     console.log(error)
   }
 }
-// document.getElementById("btn")?.addEventListener("click" ,signUp)
+document.getElementById("btn")?.addEventListener("click" ,signUp)
 
-document.getElementById("signup-form")?.addEventListener("submit" ,signUp)   ///ya line form ko submite hone sy roke gi
 
 
 //....===step-2 Sign in a user with an email address and password(login)====........
@@ -59,7 +49,7 @@ const login = async () => {
      //....Send a user a verification email..//
   
 if (!auth.currentUser.emailVerified) {  //check karta hai user ka email verified hai ya nahi
-      //console.log(auth.currentUser);   //Unverified user ka data print karna
+    console.log(auth.currentUser);   //Unverified user ka data print karna
 
       await sendEmailVerification(auth.currentUser);//currently sign in user mil jae ga email verify
       console.log("email sent successfully");
@@ -78,15 +68,65 @@ if (!auth.currentUser.emailVerified) {  //check karta hai user ka email verified
 
 document.getElementById("btn2")?.addEventListener("click", login);
 
-///=====....................forget-paswd....================///////////////
-const forgetPassword = async () => {
-  try {
-    const email = document.getElementById("email").value;   //email pangwae ga yaha 
-    await sendPasswordResetEmail(auth, email);   //pasw reset ka liye 2 chezain chahiye
-  } catch (error) {
-    console.log(error);
 
+///========================Task Add======================//
+
+document.getElementById("addTask").addEventListener("click", async () => {
+  const title = document.getElementById("taskTitle").value;
+console.log(title)
+  if (!title) 
+    return alert("Task likho");
+
+  await addDoc(collection(db, "tasks"), {
+    uid: auth.currentUser.uid,
+    title,
+    createdAt: serverTimestamp()
+  });
+
+  document.getElementById("taskTitle").value = "";
+});
+
+///======================Tasks Show=========================//
+
+
+async function deleteTask(taskId) {
+  try {
+    const taskRef = doc(db, "tasks", taskId);
+    await deleteDoc(taskRef);
+    console.log("Task deleted:", taskId);
+  } catch (error) {
+    console.error("Error deleting task:", error);
   }
 }
+//////====Show Tasks (with Delete Icon)========//
 
-document.getElementById("forget-paswd")?.addEventListener("click", forgetPassword)
+const taskList = document.getElementById("taskList");
+
+onSnapshot(collection(db, "tasks"), (snapshot) => {
+  taskList.innerHTML = ""; // UI refresh
+
+  snapshot.forEach((docSnap) => {
+    const task = docSnap.data();
+    const taskId = docSnap.id;
+
+    const li = document.createElement("li");
+
+    const span = document.createElement("span");
+    span.innerText = task.title;
+
+    // 🗑 Delete Icon
+    const deleteIcon = document.createElement("i");
+    deleteIcon.className = "fa-solid fa-trash delete-btn";
+
+    deleteIcon.addEventListener("click", async () => {
+      if (confirm("Delete this task?")) {
+        await deleteTask(taskId);
+      }
+    });
+
+    li.appendChild(span);
+    li.appendChild(deleteIcon);
+    taskList.appendChild(li);
+  });
+});
+

@@ -1,15 +1,31 @@
 
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-app.js";
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
 import{
    getAuth,
     createUserWithEmailAndPassword,
     signInWithEmailAndPassword,
-    sendEmailVerification,
-    sendPasswordResetEmail,
-    updatePassword,
-    signOut
+     sendEmailVerification
 
-}from "https://www.gstatic.com/firebasejs/12.6.0/firebase-auth.js";
+
+}from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+
+////===============firestore Database=======================//
+import { getFirestore,
+  addDoc,
+  collection,
+  serverTimestamp,
+
+  query,
+  where,
+  getDocs,
+    deleteDoc,
+     onSnapshot,
+       doc,
+
+
+ } from 
+"https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
 
   const firebaseConfig = {
     apiKey: "AIzaSyDg5vIAz4uveBpvxh3D62oJZ7VHgLeG7P8",
@@ -23,14 +39,25 @@ import{
 
   // Initialize Firebase
   const app = initializeApp(firebaseConfig);
-  const auth = getAuth(); //instance banaya
+  const auth = getAuth();
+  const db = getFirestore(app);
 
   export{
     auth,
     createUserWithEmailAndPassword,
     signInWithEmailAndPassword,
     sendEmailVerification,
-    sendPasswordResetEmail,
-    updatePassword,
-    signOut
+
+    db,
+   addDoc,
+  collection,
+  serverTimestamp,
+
+  query,
+  where,
+  getDocs,
+    deleteDoc,
+     onSnapshot,
+       doc,
+
   }
